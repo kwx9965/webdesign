@@ -51,11 +51,10 @@
                .objectStore("record")
                .add({ id: i, "category": category, "price": price });
             };
-            
+
             var category = $("#category").val();
             var price = $("#price").val();
             $("tbody").append("<tr><td>"+ category + "</td> <td>"+ price +"</td> <td><button type=\"button\" class=\"btn btn-danger\" onclick=\"remove()\">Remove</button></td> </tr>");
-
             }
             //prefixes of implementation that we want to test
          window.indexedDB = window.indexedDB || window.mozIndexedDB || 
