@@ -2,9 +2,11 @@
 <html lang="en">
 <head>
   <title>test</title>
+  
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <link rel="stylesheet" href="style.css"/>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
@@ -12,7 +14,7 @@
 <body>
     <div class="dropdown">
         <label for="category">Categories:</label>
-        <select class="form-inline" id="category">
+        <select class="form-inline" id="category" >
           <option>Food</option>
           <option>Beverage</option>
           <option>Game</option>
@@ -47,14 +49,14 @@
             request.onsuccess = function(event) {
                let i = request.result;
                i+=1;
+               var category = $("#category").val();
+               var price = $("#price").val();
                var request2 = db.transaction(["record"], "readwrite")
                .objectStore("record")
                .add({ id: i, "category": category, "price": price });
+               $("tbody").append("<tr><td>"+ category + "</td> <td>"+ price +"</td> <td><button type=\"button\" class=\"btn btn-danger\" onclick=\"remove("+ i +")\">Remove</button></td> </tr>");  
             };
 
-            var category = $("#category").val();
-            var price = $("#price").val();
-            $("tbody").append("<tr><td>"+ category + "</td> <td>"+ price +"</td> <td><button type=\"button\" class=\"btn btn-danger\" onclick=\"remove()\">Remove</button></td> </tr>");
             }
             //prefixes of implementation that we want to test
          window.indexedDB = window.indexedDB || window.mozIndexedDB || 
@@ -118,23 +120,26 @@
             };
          }
 
-         function remove() {
+         function remove(value) {
             var request = db.transaction(["record"], "readwrite")
             .objectStore("record")
-            .delete("4");
+            .delete(value);
             
             request.onsuccess = function(event) {
                alert("Kenny's entry has been removed from your database.");
+               location.reload();
             };
          }
-         /*function clear()
-         {
-            var transaction = db.transaction(["record"]);
-            var objectStore = transaction.objectStore("record");
-            var request = objectStore.clear("record");
+         /*function remove(value) {
+            var transaction = db.transaction(['record'], 'readwrite');
+            var objectStore = transaction.objectStore('record');
+            //var myIndex = objectStore.index('id');
+            var request = objectStore.getKey(2);
             request.onsuccess = function(event) {
-               alert("All data has been removed from your database.");};
+               alert(request.result.id);
+            };
          }*/
+         
 
          //progress print out index suceesfully 
          function print()
@@ -167,7 +172,7 @@
             var tableRow = document.createElement('tr');
             tableRow.innerHTML =   '<td>' + cursor.value.category + '</td>'
                            + '<td>' + cursor.value.price + '</td>'
-                           + '<td><button type=\"button\" class=\"btn btn-danger\" onclick=\"remove()\">Remove</button></td>';
+                           + '<td><button type=\"button\" class=\"btn btn-danger\" onclick=\"remove('+ cursor.value.id +')\">Remove</button></td>';
             tableEntry.appendChild(tableRow);
 
             cursor.continue();
