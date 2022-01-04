@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>記賬系統</title>
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</head>
+<body>
+    <div class="dropdown">
+        <label for="category">Categories:</label>
+        <select class="form-inline" id="category" >
+          <option>Food</option>
+          <option>Beverage</option>
+          <option>Game</option>
+          <option>3C</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="price">Price:</label>
+        <input type="number" class="form-inline" placeholder="Enter Price" id="price">
+      </div>
+      <button type="button" class="btn btn-primary" onclick="submit()">Submit</button>
+      <div class="container">
+        <table class="table table-dark table-striped">
+          <thead>
+            <tr>
+              <th>Category</th>
+              <th>Price</th>
+            </tr>
+          </thead>
+          <tbody>
+
+          </tbody>
+        </table>
+        <button type=“button” class="btn btn-danger" onclick="remove()">Clear</button>
+      </div>
+        <script>
+            function submit(){
+            var transaction = db.transaction(["record"],"readwrite");
+            var objectStore = transaction.objectStore("record");
+            var request = objectStore.count();
+            request.onsuccess = function(event) {
+               let i = request.result;
+               i+=1;
+               var category = $("#category").val();
+               var price = $("#price").val();
+               var request2 = db.transaction(["record"], "readwrite")
+               .objectStore("record")
+               .add({ id: i, "category": category, "price": price });
+               $("tbody").append("<tr><td>"+ category + "</td> <td>"+ price);  
+            };
+
+            }
+            //prefixes of implementation that we want to test
+         window.indexedDB = window.indexedDB || window.mozIndexedDB || 
+         window.webkitIndexedDB || window.msIndexedDB;
+         
+         //prefixes of window.IDB objects
+         window.IDBTransaction = window.IDBTransaction || 
+         window.webkitIDBTransaction || window.msIDBTransaction;
+         window.IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange || 
+         window.msIDBKeyRange
+         
+         if (!window.indexedDB) {
+            window.alert("Your browser doesn't support a stable version of IndexedDB.")
+         }
+         
+         const RecordData = [
+            { id: 1, category: "Game", price: '35'},
+            { id: 2, category: "3C", price: '32'},
+            { id: 3, category: "Food", price: '32'}
+         ];
+         var db;
+         var request = window.indexedDB.open("testDatabase", 1);
+         
+         request.onerror = function(event) {
+            console.log("error: ");
+         };
+         
+         request.onsuccess = function(event) {
+            db = request.result;
+            console.log("success: "+ db);
+            displaydata();
+         };
+         
+         request.onupgradeneeded = function(event) {
+            var db = event.target.result;
+            var objectStore = db.createObjectStore("record", {keyPath: "id"});
+            objectStore.createIndex('id', 'id', { unique: false });
+            for (var i in RecordData) {
+               objectStore.add(RecordData[i]);
+            }
+            
+         }
+
+         function remove(value) {
+            var request = db.transaction(["record"], "readwrite")
+            .objectStore("record")
+            .clear();
+            
+            request.onsuccess = function(event) {
+               alert("All record has been deleted");
+               location.reload();
+            };
+         }
+
+         function print()
+         {
+            var transaction = db.transaction(["record"],"readwrite");
+            var objectStore = transaction.objectStore("record");
+            var request = objectStore.count();
+            request.onerror = function(event) {
+               alert("Unable to retrieve daa from database!");
+            };
+            
+            request.onsuccess = function(event) {
+               // Do something with the request.result!
+                  $("tbody").append("<tr><td>"+ request.result + "</td></tr>");
+                     }
+               
+         }
+         
+         function displaydata() {
+            var tableEntry = document.querySelector('tbody');
+            tableEntry.innerHTML = '';
+            var transaction = db.transaction(['record'], 'readonly');
+            var objectStore = transaction.objectStore('record');
+
+            var myIndex = objectStore.index('id');
+
+            myIndex.openCursor().onsuccess = function(event) {
+            var cursor = event.target.result;
+            if(cursor) {
+            var tableRow = document.createElement('tr');
+            tableRow.innerHTML =   '<td>' + cursor.value.category + '</td>'
+                           + '<td>' + cursor.value.price + '</td>';
+            tableEntry.appendChild(tableRow);
+
+            cursor.continue();
+            } else {
+            console.log('Entries all displayed.');
+            }
+            };
+         }
+         
+        </script>
+</body>
+</html>
